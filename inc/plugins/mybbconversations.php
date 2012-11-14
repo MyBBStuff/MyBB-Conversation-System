@@ -139,11 +139,11 @@ function mybconversations_uninstall()
         admin_redirect('index.php?module=config-plugins');
     }
 
-    if (!$db->table_exists('conversations')) {
+    if ($db->table_exists('conversations')) {
         $db->drop_table('conversations');
     }
 
-    if (!$db->table_exists('conversation_messages')) {
+    if ($db->table_exists('conversation_messages')) {
         $db->drop_table('conversation_messages');
     }
 }
