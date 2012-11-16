@@ -25,7 +25,7 @@ if (!defined('PLUGINLIBRARY')) {
  *
  * @return Array The plugin details.
  */
-function mybconversations_info()
+function mybbconversations_info()
 {
     global $lang;
 
@@ -50,7 +50,7 @@ function mybconversations_info()
  *
  * @return null
  */
-function mybconversations_install()
+function mybbconversations_install()
 {
     global $db, $cache;
 
@@ -123,9 +123,9 @@ function mybbconversations_is_installed()
  *
  * @return null
  */
-function mybconversations_uninstall()
+function mybbconversations_uninstall()
 {
-    global $db;
+    global $db, $cache;
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message('The selected plugin could not be uninstalled because <a href=\"http://mods.mybb.com/view/pluginlibrary\">PluginLibrary</a> is missing.', 'error');
@@ -146,4 +146,10 @@ function mybconversations_uninstall()
     if ($db->table_exists('conversation_messages')) {
         $db->drop_table('conversation_messages');
     }
+
+    $euantor_plugins = $cache->read('euantor_plugins');
+    if (isset($euantor_plugins['mybbconversations']) AND is_array($euantor_plugins['mybbconversations'])) {
+        unset($euantor_plugins['mybbconversations']);
+    }
+    $cache->update('euantor_plugins', $euantor_plugins);
 }
