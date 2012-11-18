@@ -52,19 +52,18 @@ function mybbconversations_info()
  */
 function mybbconversations_install()
 {
-    global $db, $cache;
+    global $db, $cache, $lang;
+
+    if (!isset($lang->mybbconversations_title)) {
+        $lang->load('mybbconversations');
+    }
 
     if (!file_exists(PLUGINLIBRARY)) {
-        flash_message('The selected plugin could not be uninstalled because <a href=\"http://mods.mybb.com/view/pluginlibrary\">PluginLibrary</a> is missing.', 'error');
+        flash_message($lang->mybbconversations_pluginlibrary_missing, 'error');
         admin_redirect('index.php?module=config-plugins');
     }
 
     $PL or include_once PLUGINLIBRARY;
-
-    if ((int) $PL->version < 9) {
-        flash_message('This plugin requires PluginLibrary 9 or newer', 'error');
-        admin_redirect('index.php?module=config-plugins');
-    }
 
     $collation = $db->build_create_table_collation();
 
@@ -84,10 +83,23 @@ function mybbconversations_install()
             id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
             user_id INT(10) NOT NULL,
             conversation_id INT(10) NOT NULL,
-            subject VARCHAR(120) NOT NULL,
-            dateline DATETIME NOT NULL,
+            message TEXT NOT NULL,
             includesig INT(1) NOT NULL DEFAULT '1',
-            unread INT(1) NOT NULL DEFAULT '1'
+            unread INT(1) NOT NULL DEFAULT '1',
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL
+            ) ENGINE=MyISAM{$collation};"
+        );
+    }
+
+    if (!$db->table_exists('conversation_participants')) {
+        $db->write_query(
+            "CREATE TABLE ".TABLE_PREFIX."conversation_participants(
+            id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            conversation_id INT(10) NOT NULL,
+            user_id INT(10) NOT NULL,
+            subject VARCHAR(120) NOT NULL,
+            created_at DATETIME NOT NULL
             ) ENGINE=MyISAM{$collation};"
         );
     }
@@ -114,7 +126,11 @@ function mybbconversations_is_installed()
  */
 function mybbconversations_uninstall()
 {
-    global $db, $cache;
+    global $db, $cache, $lang;
+
+    if (!isset($lang->mybbconversations_title)) {
+        $lang->load('mybbconversations');
+    }
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message($lang->mybbconversations_pluginlibrary_missing, 'error');
@@ -131,6 +147,10 @@ function mybbconversations_uninstall()
 
     if ($db->table_exists('conversation_messages')) {
         $db->drop_table('conversation_messages');
+    }
+
+    if ($db->table_exists('conversation_participants')) {
+        $db->drop_table('conversation_participants');
     }
 
     $euantor_plugins = $cache->read('euantor_plugins');
@@ -175,11 +195,36 @@ function mybbconversations_activate()
         $lang->setting_group_mybbconversations,
         $lang->setting_group_mybbconversations_desc,
         array(
-            'enabled'   =>  array(
+            'enabled'          =>  array(
                 'title'         =>  $lang->setting_mybbconversations_enabled,
                 'description'   =>  $lang->setting_mybbconversations_enabled_desc,
                 'value'         =>  '1',
             ),
+        )
+    );
+
+    $PL->templates(
+        'mybbconversations',
+        $lang->mybbconversations_title,
+        array(
+            'create_conversation' => '<html>
+    <head>
+        <title>Start a conversation - {$mybb->settings[\'boardname\']}</title>
+        {$headerinclude}
+    </head>
+    <body>
+        {$header}
+            <form action="conversations.php?action=create_conversation" method="post">
+                <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                <label for="input_title">
+                    Title:
+                </label>
+                <input type="text" id="input_title" name="title" />
+                <textarea name="message" id="input_message"></textarea>
+            </form>
+        {$footer}
+    </body>
+</html>',
         )
     );
 }

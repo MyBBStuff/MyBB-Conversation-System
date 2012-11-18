@@ -12,8 +12,8 @@
  * @link     http://euantor.com/mybb-conversation-system
  */
 
-$l['mybbconversations_title'] = 'MyBB Conversation System';
-$l['mybbconversations_description'] = 'A replacement for MyBB\'s core Private Message functionality based on IPB\'s Conversation feature.';
+$l['mybbconversations_title']                 = 'MyBB Conversation System';
+$l['mybbconversations_description']           = 'A replacement for MyBB\'s core Private Message functionality based on IPB\'s Conversation feature.';
 
 $l['mybbconversations_pluginlibrary_missing'] = 'This plugin requires <a href="http://mods.mybb.com/view/pluginlibrary">PluginLibrary</a> to function.';
 
