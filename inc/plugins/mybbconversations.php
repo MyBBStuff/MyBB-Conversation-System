@@ -13,7 +13,7 @@
  */
 
 if (!defined('IN_MYBB')) {
-    define('IN_MYBB', 1);
+    die('Diect access to this file is not allowed. Please ensure IN_MYBB is defined.');
 }
 
 if (!defined('PLUGINLIBRARY')) {
@@ -98,7 +98,6 @@ function mybbconversations_install()
             id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
             conversation_id INT(10) NOT NULL,
             user_id INT(10) NOT NULL,
-            subject VARCHAR(120) NOT NULL,
             created_at DATETIME NOT NULL
             ) ENGINE=MyISAM{$collation};"
         );
@@ -207,6 +206,52 @@ function mybbconversations_activate()
         'mybbconversations',
         $lang->mybbconversations_title,
         array(
+            'list'                => '<html>
+    <head>
+        <title>Conversations - {$mybb->settings[\'bbname\']}</title>
+        {$headerinclude}
+    </head>
+    <body>
+        {$header}
+            <table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder">
+                <thead>
+                    <tr>
+                        <th class="thead" colspan="2">
+                            <strong>{$lang->mybbconversations_nav}</strong>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="tcat">
+                            <strong>{$lang->mybbconversations_conversation_title}</strong>
+                        </td>
+                        <td class="tcat">
+                            <strong>{$lang->mybbconversations_conversation_created_at}</strong>
+                        </td>
+                    </tr>
+                    {$conversations}
+                </tbody>
+            </table>
+        {$footer}
+    </body>
+</html>',
+
+            'row'                 => '<tr>
+    <td class="{$altbg}">
+        {$conversation[\'subject\']}
+    </td>
+    <td class="{$altbg}">
+        {$conversation[\'created_at\']}
+    </td>
+</tr>',
+
+            'row_empty'           => '<tr>
+    <td class="{$altbg}" colspan="2" style="text-align: center;">
+        {$lang->mybbconversations_no_conversations}
+    </td>
+</tr>',
+
             'create_conversation' => '<html>
     <head>
         <title>Start a conversation - {$mybb->settings[\'boardname\']}</title>

@@ -12,4 +12,11 @@
  * @link     http://euantor.com/mybb-conversation-system
  */
 
-$l['mybbconversations'] = 'MyBB Conversation System';
+$l['mybbconversations']                         = 'MyBB Conversation System';
+
+$l['mybbconversations_nav']                     = 'Conversations';
+
+$l['mybbconversations_conversation_title']      = 'Subject';
+$l['mybbconversations_conversation_created_at'] = 'Started';
+
+$l['mybbconversations_no_conversations']        = 'No conversations to display.';
