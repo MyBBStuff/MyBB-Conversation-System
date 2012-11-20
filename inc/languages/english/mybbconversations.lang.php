@@ -15,8 +15,15 @@
 $l['mybbconversations']                         = 'MyBB Conversation System';
 
 $l['mybbconversations_nav']                     = 'Conversations';
+$l['mybbconversations_nav_create']              = 'Start a conversation';
 
 $l['mybbconversations_conversation_title']      = 'Subject';
 $l['mybbconversations_conversation_created_at'] = 'Started';
 
 $l['mybbconversations_no_conversations']        = 'No conversations to display.';
+
+$l['mybbconversations_input_title']             = 'Subject:';
+$l['mybbconversations_input_message']           = 'Message:';
+$l['mybbconversations_input_add_participant']   = 'Add:';
+
+$l['mybbconversations_participants']            = 'Participants';

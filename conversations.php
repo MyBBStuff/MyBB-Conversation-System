@@ -15,6 +15,8 @@
 define('IN_MYBB', 1);
 define('THIS_SCRIPT', 'conversations.php');
 
+$templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row';
+
 require __DIR__.'/global.php';
 
 if (!isset($lang->mybbconversations)) {
@@ -27,8 +29,16 @@ if (!$mybb->user['uid'] OR !$mybb->settings['mybbconversations_enabled']) {
     error_no_permission();
 }
 
-if (!isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversation') {
-    // Create conversation page
+if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversation') {
+    add_breadcrumb($lang->mybbconversations_nav_create, 'conversations.php?action=create_conversation');
+
+    if (strtolower($mybb->request_method) == 'post') {
+
+    } else {
+        $codebuttons = build_mycode_inserter();
+        eval("\$page = \"".$templates->get('mybbconversations_create_conversation')."\";");
+        output_page($page);
+    }
 } else {
     $conversations = '';
     $altbg = '';
