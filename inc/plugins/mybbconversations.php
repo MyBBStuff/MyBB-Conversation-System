@@ -115,7 +115,7 @@ function mybbconversations_is_installed()
 {
     global $db;
 
-    return $db->table_exists('conversations') AND $db->table_exists('conversation_messages');
+    return $db->table_exists('conversations') AND $db->table_exists('conversation_messages') AND $db->table_exists('conversation_participants');
 }
 
 /**
