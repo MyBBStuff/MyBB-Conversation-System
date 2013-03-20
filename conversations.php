@@ -15,7 +15,7 @@
 define('IN_MYBB', 1);
 define('THIS_SCRIPT', 'conversations.php');
 
-$templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row';
+$templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row,mybbconversations_create_button,multipage_breadcrumb,multipage,multipage_end,multipage_nextpage,multipage_page,multipage_page_current,multipage_page_link_current,multipage_prevpage,multipage_start';
 
 require __DIR__.'/global.php';
 
@@ -77,7 +77,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversa
 	$multipage = multipage($count, $perpage, $page, 'conversations.php');
 
 	$queryString = "SELECT c.*, cp.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversations c LEFT JOIN %sconversation_participants cp ON (c.id = cp.conversation_id) LEFT JOIN %susers u ON (c.user_id = u.uid) WHERE cp.user_id = '{$uid}' GROUP BY c.id LIMIT {$start}, {$perpage};";
-	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX, TABLE_PREFIX, TABLE_PREFIX));
+	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX, TABLE_PREFIX));
 
 	if ($db->num_rows($query) > 0) {
 		$conversations = array();
