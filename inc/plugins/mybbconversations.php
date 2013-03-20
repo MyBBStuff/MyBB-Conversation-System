@@ -35,7 +35,7 @@ function mybbconversations_info()
 		'website'       => 'http://euantor.com/mybb-conversation-system',
 		'author'        => 'Euan T.',
 		'authorsite'    => 'http://euantor.com',
-		'version'       => '0.1.0',
+		'version'       => '1.0',
 		'guid'          => '',
 		'compatibility' => '16*',
 	);
@@ -187,14 +187,20 @@ function mybbconversations_activate()
 
 	$PL->settings(
 		'mybbconversations',
-		$lang->setting_group_mybbconversations,
-		$lang->setting_group_mybbconversations_desc,
+		'Conversation System Settings',
+		'Settings for the conversation system.',
 		array(
 			'enabled'          =>  array(
-				'title'         =>  $lang->setting_mybbconversations_enabled,
-				'description'   =>  $lang->setting_mybbconversations_enabled_desc,
-				'value'         =>  '1',
+				'title'       =>  'Enabled?',
+				'description' =>  'You can use this switch to globally disable the system if required.',
+				'value'       =>  '1',
 			),
+			'conversations_per_page' => array(
+				'title'       => 'Number of conversations to list per page?',
+				'description' => 'How many conversations should be shown per page in the recent conversations list?',
+				'optionscode' => 'text',
+				'value'       => '20',
+			)
 		)
 	);
 

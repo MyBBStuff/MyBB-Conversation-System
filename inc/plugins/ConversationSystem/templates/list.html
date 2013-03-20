@@ -5,26 +5,40 @@
 	</head>
 	<body>
 		{$header}
-			<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
-				<thead>
-					<tr>
-						<th class="thead" colspan="2">
-							<strong>{$lang->mybbconversations_nav}</strong>
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td class="tcat">
-							<strong>{$lang->mybbconversations_conversation_title}</strong>
-						</td>
-						<td class="tcat">
-							<strong>{$lang->mybbconversations_conversation_created_at}</strong>
-						</td>
-					</tr>
-					{$conversations}
-				</tbody>
-			</table>
+		<div class="float_left">
+			{$multipage}
+		</div>
+		<div class="float_right">
+			{$createButton}
+		</div>
+		<div class="clear"></div>
+		<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+			<thead>
+				<tr>
+					<th class="thead" colspan="2">
+						<strong>{$lang->mybbconversations_nav}</strong>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="tcat">
+						<strong>{$lang->mybbconversations_conversation_title}</strong>
+					</td>
+					<td class="tcat">
+						<strong>{$lang->mybbconversations_conversation_created_at}</strong>
+					</td>
+				</tr>
+				{$conversations}
+			</tbody>
+		</table>
+		<div class="float_left">
+			{$multipage}
+		</div>
+		<div class="float_right">
+			{$createButton}
+		</div>
+		<div class="clear"></div>
 		{$footer}
 	</body>
 </html>
