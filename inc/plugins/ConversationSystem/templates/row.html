@@ -1,8 +1,12 @@
 <tr>
 	<td class="{$altbg}">
 		{$conversation['subject']}
+		<br />
+		<span class="smalltext">{$lang->mybbconversations_conversation_created_at}:&nbsp;{$conversation['created_at']}</span>
 	</td>
 	<td class="{$altbg}">
-		{$conversation['created_at']}
+		by {$conversation['lastmessage']['profilelink']}
+		<br />
+		<span class="smalltext">{$conversation['lastmessage']['created_at']}</span>
 	</td>
 </tr>
