@@ -17,7 +17,7 @@ define('THIS_SCRIPT', 'conversations.php');
 
 $templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row,mybbconversations_create_button,multipage_breadcrumb,multipage,multipage_end,multipage_nextpage,multipage_page,multipage_page_current,multipage_page_link_current,multipage_prevpage,multipage_start';
 
-require __DIR__.'/global.php';
+require dirname(__FILE__).'/global.php';
 
 if (!isset($lang->mybbconversations)) {
 	$lang->load('mybbconversations');
@@ -33,7 +33,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversa
 	add_breadcrumb($lang->mybbconversations_nav_create, 'conversations.php?action=create_conversation');
 
 	if (strtolower($mybb->request_method) == 'post') {
-
+		$input = $mybb->input;
 	} else {
 		$codebuttons = build_mycode_inserter();
 		eval("\$page = \"".$templates->get('mybbconversations_create_conversation')."\";");
