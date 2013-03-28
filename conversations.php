@@ -29,17 +29,33 @@ if ($mybb->user['uid'] == 0 OR !$mybb->settings['mybbconversations_enabled']) {
 	error_no_permission();
 }
 
-if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversation') {
+if ($mybb->input['action'] == 'do_create_conversation' AND strtolower($mybb->request_method) == 'post') {
+	verify_post_check($mybb->input['my_post_key']);
+	$errors = array();
+
+	if (!isset($mybb->input['title']) OR empty($mybb->input['title'])) {
+		$errors[] = $lang->mybbconversations_error_title_required;
+	}
+
+	if (!isset($mybb->input['message']) OR empty($mybb->input['message'])) {
+		$errors[] = $lang->mybbconversations_error_message_required;
+	}
+
+	if (!empty($errors)) {
+		$inline_errors = inline_error($errors);
+		$mybb->input['action'] = 'create_conversation';
+	}
+}
+
+if ($mybb->input['action'] == 'create_conversation') {
 	add_breadcrumb($lang->mybbconversations_nav_create, 'conversations.php?action=create_conversation');
 
-	if (strtolower($mybb->request_method) == 'post') {
-		$input = $mybb->input;
-	} else {
-		$codebuttons = build_mycode_inserter();
-		eval("\$page = \"".$templates->get('mybbconversations_create_conversation')."\";");
-		output_page($page);
-	}
-} else {
+	$codebuttons = build_mycode_inserter();
+	eval("\$page = \"".$templates->get('mybbconversations_create_conversation')."\";");
+	output_page($page);
+}
+
+if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 	$conversations = '';
 	$altbg = '';
 	$uid = (int) $mybb->user['uid'];

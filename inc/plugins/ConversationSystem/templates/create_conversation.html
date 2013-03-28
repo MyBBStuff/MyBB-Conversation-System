@@ -35,7 +35,8 @@
 						</table>
 					</td>
 					<td valign="top">
-						<form action="conversations.php?action=create_conversation" method="post">
+						{$inline_errors}
+						<form action="conversations.php?action=do_create_conversation" method="post">
 							<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
 							<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
 								<thead>
@@ -69,6 +70,9 @@
 									</tr>
 								</tbody>
 							</table>
+							<div align="center">
+								<input type="submit" value="{$lang->mybbconversations_start_conversation}" />
+							</div>
 						</form>
 					</td>
 				</tr>
