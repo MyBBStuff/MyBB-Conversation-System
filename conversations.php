@@ -42,7 +42,7 @@ if ($mybb->input['action'] == 'do_create_conversation' AND strtolower($mybb->req
 	}
 
 	if (!empty($errors)) {
-		$inline_errors = inline_error($errors);
+		$inline_errors         = inline_error($errors);
 		$mybb->input['action'] = 'create_conversation';
 	}
 }
@@ -57,23 +57,23 @@ if ($mybb->input['action'] == 'create_conversation') {
 
 if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 	$conversations = '';
-	$altbg = '';
-	$uid = (int) $mybb->user['uid'];
+	$altbg         = '';
+	$uid           = (int)$mybb->user['uid'];
 
 	eval("\$createButton = \"".$templates->get('mybbconversations_create_button')."\";");
 
 	$queryString = "SELECT COUNT(*) AS count FROM %sconversations c LEFT JOIN %sconversation_participants cp ON (c.id = cp.conversation_id) WHERE cp.user_id = '{$uid}'";
-	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
-	$count = (int) $db->fetch_field($query, 'count');
+	$query       = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
+	$count       = (int)$db->fetch_field($query, 'count');
 	unset($queryString);
 	unset($query);
 
-	$perpage = (int) $mybb->settings['mybbconversations_conversations_per_page'];
+	$perpage = (int)$mybb->settings['mybbconversations_conversations_per_page'];
 	if ($perpage == 0) {
 		$perpage = 20;
 	}
 
-	$page  = (int) $mybb->input['page'];
+	$page  = (int)$mybb->input['page'];
 	$pages = $count / $perpage;
 	$pages = ceil($pages);
 	if ($mybb->input['page'] == "last") {
@@ -88,34 +88,34 @@ if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 		$start = ($page - 1) * $perpage;
 	} else {
 		$start = 0;
-		$page = 1;
+		$page  = 1;
 	}
 	$multipage = multipage($count, $perpage, $page, 'conversations.php');
 
 	$queryString = "SELECT c.*, cp.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversations c LEFT JOIN %sconversation_participants cp ON (c.id = cp.conversation_id) LEFT JOIN %susers u ON (c.user_id = u.uid) WHERE cp.user_id = '{$uid}' GROUP BY c.id LIMIT {$start}, {$perpage};";
-	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX, TABLE_PREFIX));
+	$query       = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX, TABLE_PREFIX));
 
 	if ($db->num_rows($query) > 0) {
 		$conversations = array();
 		while ($conversation = $db->fetch_array($query)) {
-			$conversations[(int) $conversation['id']] = $conversation;
+			$conversations[(int)$conversation['id']] = $conversation;
 		}
 		unset($queryString);
 		unset($query);
 
-		$inString = "'".implode("','", array_keys(array_filter($conversations)))."'";
+		$inString    = "'".implode("','", array_keys(array_filter($conversations)))."'";
 		$queryString = "SELECT cm.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_messages cm LEFT JOIN %susers u ON (cm.user_id = u.uid) WHERE cm.conversation_id IN({$inString}) ORDER BY ABS(cm.created_at) ASC;";
-		$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
+		$query       = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
 		while ($conversation = $db->fetch_array($query)) {
-			$conversations[(int) $conversation['conversation_id']]['lastmessage'] = $conversation;
+			$conversations[(int)$conversation['conversation_id']]['lastmessage'] = $conversation;
 		}
 
 		$conversationsList = '';
 		foreach ($conversations as $conversation) {
-			$altbg = alt_trow();
-			$conversation['subject'] = htmlspecialchars_uni($conversation['subject']);
-			$conversation['created_at'] = my_date($mybb->settings['dateformat'], strtotime($conversation['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['created_at']));
-			$conversation['lastmessage']['created_at'] = my_date($mybb->settings['dateformat'], strtotime($conversation['lastmessage']['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['lastmessage']['created_at']));
+			$altbg                                      = alt_trow();
+			$conversation['subject']                    = htmlspecialchars_uni($conversation['subject']);
+			$conversation['created_at']                 = my_date($mybb->settings['dateformat'], strtotime($conversation['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['created_at']));
+			$conversation['lastmessage']['created_at']  = my_date($mybb->settings['dateformat'], strtotime($conversation['lastmessage']['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['lastmessage']['created_at']));
 			$conversation['lastmessage']['profilelink'] = build_profile_link(format_name(htmlspecialchars_uni($conversation['lastmessage']['username']), $conversation['lastmessage']['usergroup'], $conversation['lastmessage']['displaygroup']), $conversation['lastmessage']['user_id']);
 			eval("\$conversationsList .= \"".$templates->get('mybbconversations_row')."\";");
 		}

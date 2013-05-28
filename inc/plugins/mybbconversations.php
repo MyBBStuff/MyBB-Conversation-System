@@ -19,7 +19,7 @@ if (!defined('PLUGINLIBRARY')) {
 /**
  * Information function.
  *
- * @return Array The plugin details.
+ * @return array The plugin details.
  */
 function mybbconversations_info()
 {
@@ -174,14 +174,14 @@ function mybbconversations_activate()
 
 	$PL or require_once PLUGINLIBRARY;
 
-	$plugin_info = myalerts_info();
+	$plugin_info     = myalerts_info();
 	$euantor_plugins = $cache->read('euantor_plugins');
 	if (empty($euantor_plugins) OR !is_array($euantor_plugins)) {
 		$euantor_plugins = array();
 	}
 	$euantor_plugins['mybbconversations'] = array(
-		'title'   =>  'MyBB Conversation System',
-		'version' =>  $plugin_info['version'],
+		'title'   => 'MyBB Conversation System',
+		'version' => $plugin_info['version'],
 	);
 	$cache->update('euantor_plugins', $euantor_plugins);
 
@@ -190,10 +190,10 @@ function mybbconversations_activate()
 		'Conversation System Settings',
 		'Settings for the conversation system.',
 		array(
-			'enabled'          =>  array(
-				'title'       =>  'Enabled?',
-				'description' =>  'You can use this switch to globally disable the system if required.',
-				'value'       =>  '1',
+			'enabled'                => array(
+				'title'       => 'Enabled?',
+				'description' => 'You can use this switch to globally disable the system if required.',
+				'value'       => '1',
 			),
 			'conversations_per_page' => array(
 				'title'       => 'Number of conversations to list per page?',
@@ -204,7 +204,7 @@ function mybbconversations_activate()
 		)
 	);
 
-	$dir = new DirectoryIterator(dirname(__FILE__).'/ConversationSystem/templates'); // Change this to the path for your plugin
+	$dir       = new DirectoryIterator(dirname(__FILE__).'/ConversationSystem/templates'); // Change this to the path for your plugin
 	$templates = array();
 	foreach ($dir as $file) {
 		if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'html') {
