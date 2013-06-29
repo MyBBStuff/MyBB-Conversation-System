@@ -23,19 +23,13 @@ if (!defined('PLUGINLIBRARY')) {
  */
 function mybbconversations_info()
 {
-	global $lang;
-
-	if (!isset($lang->mybbconversations_title)) {
-		$lang->load('mybbconversations');
-	}
-
 	return array(
-		'name'          => $lang->mybbconversations_title,
-		'description'   => $lang->mybbconversations_description,
+		'name'          => 'Conversation System',
+		'description'   => 'A drop in replacement for Private Messages. Let your users have conversations, not just exchange messages with each other.',
 		'website'       => 'http://euantor.com/mybb-conversation-system',
 		'author'        => 'Euan T.',
 		'authorsite'    => 'http://euantor.com',
-		'version'       => '1.0',
+		'version'       => '0.1',
 		'guid'          => '',
 		'compatibility' => '16*',
 	);
@@ -68,7 +62,8 @@ function mybbconversations_install()
 			"CREATE TABLE ".TABLE_PREFIX."conversations(
 			id INT(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 			user_id INT(10) unsigned NOT NULL,
-			subject VARCHAR(120) NOT NULL
+			subject VARCHAR(120) NOT NULL,
+			created_at DATETIME NOT NULL
 			) ENGINE=MyISAM{$collation};"
 		);
 	}
@@ -81,7 +76,6 @@ function mybbconversations_install()
 			conversation_id INT(10) unsigned NOT NULL,
 			message TEXT NOT NULL,
 			includesig INT(1) NOT NULL DEFAULT '1',
-			unread INT(1) NOT NULL DEFAULT '1',
 			created_at DATETIME NOT NULL,
 			updated_at DATETIME NOT NULL
 			) ENGINE=MyISAM{$collation};"
@@ -174,7 +168,7 @@ function mybbconversations_activate()
 
 	$PL or require_once PLUGINLIBRARY;
 
-	$plugin_info     = myalerts_info();
+	$plugin_info     = mybbconversations_info();
 	$euantor_plugins = $cache->read('euantor_plugins');
 	if (empty($euantor_plugins) OR !is_array($euantor_plugins)) {
 		$euantor_plugins = array();

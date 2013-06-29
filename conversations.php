@@ -19,6 +19,8 @@ $templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversa
 
 require dirname(__FILE__).'/global.php';
 
+define('URL_VIEW_CONVERSATION', 'conversations.php?action=view&id=%s');
+
 if (!isset($lang->mybbconversations)) {
 	$lang->load('mybbconversations');
 }
@@ -29,11 +31,14 @@ if ($mybb->user['uid'] == 0 OR !$mybb->settings['mybbconversations_enabled']) {
 	error_no_permission();
 }
 
-if ($mybb->input['action'] == 'do_create_conversation' AND strtolower($mybb->request_method) == 'post') {
+if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->request_method) == 'post') {
 	verify_post_check($mybb->input['my_post_key']);
 	$errors = array();
 
-	if (!isset($mybb->input['title']) OR empty($mybb->input['title'])) {
+	$mybb->input['subejct'] = trim($mybb->input['subject']);
+	$mybb->input['message'] = trim($mybb->input['message']);
+
+	if (!isset($mybb->input['subject']) OR empty($mybb->input['subject'])) {
 		$errors[] = $lang->mybbconversations_error_title_required;
 	}
 
@@ -45,6 +50,57 @@ if ($mybb->input['action'] == 'do_create_conversation' AND strtolower($mybb->req
 		$inline_errors         = inline_error($errors);
 		$mybb->input['action'] = 'create_conversation';
 	}
+
+	$now = new DateTime();
+
+	$insertArray = array(
+		'subject' => $db->escape_string($mybb->input['subject']),
+		'user_id' => (int) $mybb->user['uid'],
+		'created_at' => $now->format('Y-m-d H:i:s'),
+	);
+
+	$conversationId = (int) $db->insert_query('conversations', $insertArray);
+
+	$insertArray = array(
+		'user_id' => (int) $mybb->user['uid'],
+		'conversation_id' => $conversationId,
+		'message' => $db->escape_string($mybb->input['message']),
+		'includesig' => 1,
+		'created_at' => $now->format('Y-m-d H:i:s'),
+		'updated_at' => $now->format('Y-m-d H:i:s'),
+	);
+
+	$firstMessageId = $db->insert_query('conversation_messages', $insertArray);
+
+	$participants = array();
+	$participantUids = array();
+
+	if (strstr($mybb->input['participants'], ',')  === false) {
+		$mybb->input['participants'] = array(
+			$mybb->input['participants'],
+		);
+	} else {
+		$mybb->input['participants'] = explode(',', $mybb->input['participants']);
+	}
+
+	$mybb->input['participants']  = array_map('trim', $mybb->input['participants']);
+	$mybb->input['participants']  = array_map(array($db, 'escape_string'), $mybb->input['participants']);
+	$usernames  = "'".implode("','", array_keys(array_filter($mybb->input['participants'])))."'";
+	$users = $db->simple_select('users', 'uid, username', "username IN ({$usernames})");
+
+	foreach ($users as $user) {
+		$participantUids[$user['username']] = $user['uid'];
+	}
+
+	foreach ($mybb->input['participants'] as $participant) {
+		$participants[] = array(
+			'conversation_id' => $conversationId,
+			'user_id' => (int) $participantUids[$participant],
+			'created_at' => $now->format('Y-m-d H:i:s'),
+		);
+	}
+
+	redirect(sprintf(URL_VIEW_CONVERSATION, $conversationId), 'New conversation created. Taking you to it now...', 'Conversation Created');
 }
 
 if ($mybb->input['action'] == 'create_conversation') {
@@ -103,18 +159,19 @@ if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 		unset($queryString);
 		unset($query);
 
-		$inString    = "'".implode("','", array_keys(array_filter($conversations)))."'";
+		$inString = "'".implode("','", array_keys(array_filter($conversations)))."'";
 		$queryString = "SELECT cm.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_messages cm LEFT JOIN %susers u ON (cm.user_id = u.uid) WHERE cm.conversation_id IN({$inString}) ORDER BY ABS(cm.created_at) ASC;";
-		$query       = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
+		$query  = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
 		while ($conversation = $db->fetch_array($query)) {
 			$conversations[(int)$conversation['conversation_id']]['lastmessage'] = $conversation;
 		}
 
 		$conversationsList = '';
 		foreach ($conversations as $conversation) {
-			$altbg                                      = alt_trow();
-			$conversation['subject']                    = htmlspecialchars_uni($conversation['subject']);
-			$conversation['created_at']                 = my_date($mybb->settings['dateformat'], strtotime($conversation['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['created_at']));
+			$altbg = alt_trow();
+			$conversation['link'] = htmlspecialchars_uni(sprintf(URL_VIEW_CONVERSATION, (int) $conversation['id']));
+			$conversation['subject'] = htmlspecialchars_uni($conversation['subject']);
+			$conversation['created_at'] = my_date($mybb->settings['dateformat'], strtotime($conversation['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['created_at']));
 			$conversation['lastmessage']['created_at']  = my_date($mybb->settings['dateformat'], strtotime($conversation['lastmessage']['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['lastmessage']['created_at']));
 			$conversation['lastmessage']['profilelink'] = build_profile_link(format_name(htmlspecialchars_uni($conversation['lastmessage']['username']), $conversation['lastmessage']['usergroup'], $conversation['lastmessage']['displaygroup']), $conversation['lastmessage']['user_id']);
 			eval("\$conversationsList .= \"".$templates->get('mybbconversations_row')."\";");
