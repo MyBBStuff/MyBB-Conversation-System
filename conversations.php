@@ -172,6 +172,18 @@ if ($mybb->input['action'] == 'view') {
 		error_no_permission();
 	}
 
+	require_once  MYBB_ROOT.'inc/class_parser.php';
+	$parser = new postParser;
+
+	$parserOptions = array(
+		'allow_html' => false,
+		'allow_mycode' => true,
+		'allow_smilies' => true,
+		'allow_imgcode' => true,
+		'allow_videocode' => true,
+		'filter_badwords' => true,
+	);
+
 	$messages = array();
 
 	$queryString = "SELECT m.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_messages m LEFT JOIN %susers u ON (m.user_id = u.uid) WHERE m.conversation_id = {$id}";
@@ -190,10 +202,22 @@ if ($mybb->input['action'] == 'view') {
 				),
 				'avatar' => htmlspecialchars_uni($message['avatar']),
 			),
-			'message' => htmlspecialchars_uni($message['message']),
+			'message' => $parser->parse_message($message['message'], $parserOptions),
 			'includesig' => (bool) $message['includesig'],
 			'created_at' => my_date($mybb->settings['date_format'] .' '.$mybb->settings['time_format'], $message['created_at']),
 		);
+	}
+
+	$participantList = '';
+	foreach ($participants as $participant) {
+		$altbg = alt_trow();
+		eval("\$participantList .= \"".$templates->get('mybbconversations_single_participant')."\";");
+	}
+
+	$messageList = '';
+	foreach ($messages as $message) {
+		$altbg = alt_trow();
+		eval("\$messageList .= \"".$templates->get('mybbconversations_single_message')."\";");
 	}
 
 	add_breadcrumb($conversation['subject'], sprintf(URL_VIEW_CONVERSATION, $conversation['id']));
