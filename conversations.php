@@ -111,6 +111,97 @@ if ($mybb->input['action'] == 'create_conversation') {
 	output_page($page);
 }
 
+if ($mybb->input['action'] == 'view') {
+	$id = (int) $mybb->input['id'];
+
+	if (empty($id)) {
+		error('Conversation not found. Please try again.');
+	}
+
+	$conversation = array();
+	$queryString = "SELECT c.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversations c LEFT JOIN %susers u ON (c.user_id = u.uid) WHERE c.id = {$id} LIMIT 1";
+	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
+
+	if ($db->num_rows($query) != 1) {
+		error('Invalid conversation ID.');
+	}
+
+	$conversation = $db->fetch_array($query);
+
+	$conversation = array(
+		'id' => (int) $conversation['id'],
+		'subject' => htmlspecialchars_uni($conversation['subject']),
+		'user' => array(
+			'username' => htmlspecialchars_uni($conversation['username']),
+			'profilelink' => build_profile_link(
+				format_name(
+					htmlspecialchars_uni($conversation['username']),
+					$conversation['usergroup'],
+					$conversation['displaygroup']),
+				$conversation['user_id']
+			),
+			'avatar' => htmlspecialchars_uni($conversation['avatar']),
+		),
+		'created_at' => my_date($mybb->settings['date_format'] .' '.$mybb->settings['time_format'], $conversation['created_at']),
+	);
+
+	$participants = array();
+
+	$queryString = "SELECT cp.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_participants cp LEFT JOIN %susers u ON (cp.user_id = u.uid) WHERE cp.conversation_id = {$id}";
+	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
+
+	if ($db->num_rows($query) < 1) {
+		error('Invalid conversation. This conversation does not have any participants.');
+	}
+
+	while ($participant = $db->fetch_array($query)) {
+		$participants[(int) $participant['user_id']] = array(
+			'username' => htmlspecialchars_uni($participant['username']),
+			'profilelink' => build_profile_link(
+				format_name(
+					htmlspecialchars_uni($participant['username']),
+					$participant['usergroup'],
+					$participant['displaygroup']),
+				$participant['user_id']
+			),
+			'avatar' => htmlspecialchars_uni($participant['avatar']),
+		);
+	}
+
+	if (!array_key_exists((int) $mybb->user['uid'], $participants)) {
+		error_no_permission();
+	}
+
+	$messages = array();
+
+	$queryString = "SELECT m.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_messages m LEFT JOIN %susers u ON (m.user_id = u.uid) WHERE m.conversation_id = {$id}";
+	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
+
+	while ($message = $db->fetch_array($query)) {
+		$messages[] = array(
+			'user' => array(
+				'username' => htmlspecialchars_uni($message['username']),
+				'profilelink' => build_profile_link(
+					format_name(
+						htmlspecialchars_uni($message['username']),
+						$message['usergroup'],
+						$message['displaygroup']),
+					$message['user_id']
+				),
+				'avatar' => htmlspecialchars_uni($message['avatar']),
+			),
+			'message' => htmlspecialchars_uni($message['message']),
+			'includesig' => (bool) $message['includesig'],
+			'created_at' => my_date($mybb->settings['date_format'] .' '.$mybb->settings['time_format'], $message['created_at']),
+		);
+	}
+
+	add_breadcrumb($conversation['subject'], sprintf(URL_VIEW_CONVERSATION, $conversation['id']));
+
+	eval("\$page = \"".$templates->get('mybbconversations_view')."\";");
+	output_page($page);
+}
+
 if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 	$conversations = '';
 	$altbg         = '';
@@ -169,7 +260,7 @@ if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 		$conversationsList = '';
 		foreach ($conversations as $conversation) {
 			$altbg = alt_trow();
-			$conversation['link'] = htmlspecialchars_uni(sprintf(URL_VIEW_CONVERSATION, (int) $conversation['id']));
+			$conversation['link'] = htmlspecialchars_uni(sprintf(URL_VIEW_CONVERSATION, (int) $conversation['conversation_id']));
 			$conversation['subject'] = htmlspecialchars_uni($conversation['subject']);
 			$conversation['created_at'] = my_date($mybb->settings['dateformat'], strtotime($conversation['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['created_at']));
 			$conversation['lastmessage']['created_at']  = my_date($mybb->settings['dateformat'], strtotime($conversation['lastmessage']['created_at'])).' '.my_date($mybb->settings['timeformat'], strtotime($conversation['lastmessage']['created_at']));
