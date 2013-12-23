@@ -51,11 +51,6 @@ if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->reques
 		$mybb->input['action'] = 'create_conversation';
 	}
 
-	$conversation = $conversationManager->createConversation(array(), $mybb->input['subject'], $mybb->input['message']);
-
-	$participants = array();
-	$participantUids = array();
-
 	if (strstr($mybb->input['participants'], ',')  === false) {
 		$mybb->input['participants'] = array(
 			$mybb->input['participants'],
@@ -64,24 +59,17 @@ if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->reques
 		$mybb->input['participants'] = explode(',', $mybb->input['participants']);
 	}
 
-	$mybb->input['participants']  = array_map('trim', $mybb->input['participants']);
-	$mybb->input['participants']  = array_map(array($db, 'escape_string'), $mybb->input['participants']);
-	$usernames  = "'".implode("','", array_keys(array_filter($mybb->input['participants'])))."'";
-	$users = $db->simple_select('users', 'uid, username', "username IN ({$usernames})");
+	$conversation = $conversationManager->createConversation(
+		$mybb->input['participants'],
+		$mybb->input['subject'],
+		$mybb->input['message']
+	);
 
-	foreach ($users as $user) {
-		$participantUids[$user['username']] = $user['uid'];
-	}
-
-	foreach ($mybb->input['participants'] as $participant) {
-		$participants[] = array(
-			'conversation_id' => $conversationId,
-			'user_id' => (int) $participantUids[$participant],
-			'created_at' => $now->format('Y-m-d H:i:s'),
-		);
-	}
-
-	redirect(sprintf(URL_VIEW_CONVERSATION, $conversationId), 'New conversation created. Taking you to it now...', 'Conversation Created');
+	redirect(
+		sprintf(URL_VIEW_CONVERSATION, $conversation['id']),
+		'New conversation created. Taking you to it now...',
+		'Conversation Created'
+	);
 }
 
 if ($mybb->input['action'] == 'create_conversation') {
