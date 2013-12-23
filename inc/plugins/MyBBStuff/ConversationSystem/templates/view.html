@@ -8,12 +8,12 @@
 <div class="conversation">
     <div class="meta">
         <div class="float_left">
-            <img src="{$conversation['user']['avatar']}" height="80"/>
+            <img src="{$conversation['creator']['avatar']}" height="80"/>
         </div>
         <h1>{$conversation['subject']}</h1>
 
         <div class="smalltext">
-            <strong>Started By:</strong> {$conversation['user']['profilelink']} - {$conversation['created-at']}
+            <strong>Started By:</strong> {$conversation['creator']['profilelink']} - {$conversation['created_at']}
         </div>
         <div class="clear"></div>
     </div>

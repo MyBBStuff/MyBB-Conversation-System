@@ -3,14 +3,21 @@
     <thead>
     <tr>
         <th class="trow" colspan="2">
-            <strong>{$message['user']['profilelink']}</strong>
+            <strong>{$message['created_at']}</strong>
         </th>
     </tr>
     </thead>
     <tbody>
     <tr>
+        <td class="{$altbg}" rowspan="2">
+            <div class="avatar">
+                <img src="{$message['author']['avatar']}"/>
+            </div>
+            {$message['author']['profilelink']}
+        </td>
         <td class="{$altbg}">
             {$message['message']}
         </td>
+        {$signature}
     </tbody>
 </table>

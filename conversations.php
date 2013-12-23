@@ -87,60 +87,6 @@ if ($mybb->input['action'] == 'view') {
 		error('Conversation not found. Please try again.');
 	}
 
-	$conversation = array();
-	$queryString = "SELECT c.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversations c LEFT JOIN %susers u ON (c.user_id = u.uid) WHERE c.id = {$id} LIMIT 1";
-	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
-
-	if ($db->num_rows($query) != 1) {
-		error('Invalid conversation ID.');
-	}
-
-	$conversation = $db->fetch_array($query);
-
-	$conversation = array(
-		'id' => (int) $conversation['id'],
-		'subject' => htmlspecialchars_uni($conversation['subject']),
-		'user' => array(
-			'username' => htmlspecialchars_uni($conversation['username']),
-			'profilelink' => build_profile_link(
-				format_name(
-					htmlspecialchars_uni($conversation['username']),
-					$conversation['usergroup'],
-					$conversation['displaygroup']),
-				$conversation['user_id']
-			),
-			'avatar' => htmlspecialchars_uni($conversation['avatar']),
-		),
-		'created_at' => my_date($mybb->settings['date_format'] .' '.$mybb->settings['time_format'], $conversation['created_at']),
-	);
-
-	$participants = array();
-
-	$queryString = "SELECT cp.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_participants cp LEFT JOIN %susers u ON (cp.user_id = u.uid) WHERE cp.conversation_id = {$id}";
-	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
-
-	if ($db->num_rows($query) < 1) {
-		error('Invalid conversation. This conversation does not have any participants.');
-	}
-
-	while ($participant = $db->fetch_array($query)) {
-		$participants[(int) $participant['user_id']] = array(
-			'username' => htmlspecialchars_uni($participant['username']),
-			'profilelink' => build_profile_link(
-				format_name(
-					htmlspecialchars_uni($participant['username']),
-					$participant['usergroup'],
-					$participant['displaygroup']),
-				$participant['user_id']
-			),
-			'avatar' => htmlspecialchars_uni($participant['avatar']),
-		);
-	}
-
-	if (!array_key_exists((int) $mybb->user['uid'], $participants)) {
-		error_no_permission();
-	}
-
 	require_once  MYBB_ROOT.'inc/class_parser.php';
 	$parser = new postParser;
 
@@ -153,39 +99,32 @@ if ($mybb->input['action'] == 'view') {
 		'filter_badwords' => true,
 	);
 
-	$messages = array();
+	$conversationManager->setParser($parser, $parserOptions);
+	$conversation  = $conversationManager->getConversation($id);
 
-	$queryString = "SELECT m.*, u.username, u.avatar, u.usergroup, u.displaygroup FROM %sconversation_messages m LEFT JOIN %susers u ON (m.user_id = u.uid) WHERE m.conversation_id = {$id}";
-	$query = $db->write_query(sprintf($queryString, TABLE_PREFIX, TABLE_PREFIX));
-
-	while ($message = $db->fetch_array($query)) {
-		$messages[] = array(
-			'user' => array(
-				'username' => htmlspecialchars_uni($message['username']),
-				'profilelink' => build_profile_link(
-					format_name(
-						htmlspecialchars_uni($message['username']),
-						$message['usergroup'],
-						$message['displaygroup']),
-					$message['user_id']
-				),
-				'avatar' => htmlspecialchars_uni($message['avatar']),
-			),
-			'message' => $parser->parse_message($message['message'], $parserOptions),
-			'includesig' => (bool) $message['includesig'],
-			'created_at' => my_date($mybb->settings['date_format'] .' '.$mybb->settings['time_format'], $message['created_at']),
-		);
+	if (empty($conversation)) {
+		error('Invalid conversation ID.');
 	}
 
+//	if (!array_key_exists((int) $mybb->user['uid'], $participants)) {
+//		error_no_permission();
+//	}
+
 	$participantList = '';
-	foreach ($participants as $participant) {
+	foreach ($conversation['participants'] as $participant) {
 		$altbg = alt_trow();
 		eval("\$participantList .= \"".$templates->get('mybbconversations_single_participant')."\";");
 	}
 
 	$messageList = '';
-	foreach ($messages as $message) {
+	foreach ($conversation['messages'] as $message) {
 		$altbg = alt_trow();
+		$signature = '';
+
+		if ($message['include_signature']) {
+			eval("\$signature = \"" . $templates->get('mybbconversations_single_message_signature') . "\";");
+		}
+
 		eval("\$messageList .= \"".$templates->get('mybbconversations_single_message')."\";");
 	}
 

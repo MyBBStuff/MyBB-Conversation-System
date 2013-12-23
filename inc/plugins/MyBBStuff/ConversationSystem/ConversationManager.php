@@ -17,11 +17,38 @@ class MyBBStuff_ConversationSystem_ConversationManager
 	 * @var DB_MySQLi
 	 */
 	private $db;
+	/**
+	 * @var postParser
+	 */
+	private $parser;
+	/**
+	 * @var array
+	 */
+	private $parserOptions = array(
+		'allow_html'      => false,
+		'allow_mycode'    => true,
+		'allow_smilies'   => true,
+		'allow_imgcode'   => true,
+		'allow_videocode' => true,
+		'filter_badwords' => true,
+	);
 
 	public function __construct(MyBB &$mybb, DB_MySQLi &$db)
 	{
 		$this->mybb = $mybb;
 		$this->db   = $db;
+	}
+
+	/**
+	 * Set the parser to be used when fetching messages.
+	 *
+	 * @param postParser $parser  The parser object.
+	 * @param array      $options An array of options to use with the parser.
+	 */
+	public function setParser(postParser $parser, array $options)
+	{
+		$this->parser        = $parser;
+		$this->parserOptions = $options;
 	}
 
 	/**
@@ -94,6 +121,156 @@ SQL;
 		}
 
 		return $conversations;
+	}
+
+	/**
+	 * Get a single conversation with all it's participants and messages from the database.
+	 *
+	 * @param int $conversationId  The ID of the conversation to fetch.
+	 * @param int $messagesOffset  The starting offset for the messages in the conversation. Defaults to 0.
+	 * @param int $messagesPerPage The number of messages to show per page. Defaults to 10.
+	 *
+	 * @return array The conversation's details.
+	 */
+	public function getConversation($conversationId, $messagesOffset = 0, $messagesPerPage = 10)
+	{
+		$conversationId = (int) $conversationId;
+
+		$conversation = array();
+
+		$queryString = <<<SQL
+	SELECT
+	  c.*,
+	  u.username,
+	  u.avatar,
+	  u.usergroup,
+	  u.displaygroup
+	FROM PREFIX_conversations c INNER JOIN PREFIX_users u
+		ON (c.user_id = u.uid)
+	WHERE c.id = '{$conversationId}' LIMIT 1;
+SQL;
+
+		$queryString = str_replace('PREFIX_', TABLE_PREFIX, $queryString);
+
+		$query = $this->db->write_query($queryString);
+
+		if ($this->db->num_rows($query) > 0) {
+			$fetchedConversation = $this->db->fetch_array($query);
+
+			$conversation = array(
+				'id'           => (int) $fetchedConversation['id'],
+				'subject'      => htmlspecialchars_uni($fetchedConversation['subject']),
+				'created_at'   => my_date(
+					$this->mybb->settings['dateformat'] . ' ' . $this->mybb->settings['timeformat'],
+					$fetchedConversation['created_at']
+				),
+				'creator'      => array(
+					'username'     => htmlspecialchars_uni($fetchedConversation['username']),
+					'avatar'       => htmlspecialchars_uni($fetchedConversation['avatar']),
+					'usergroup'    => (int) $fetchedConversation['usergroup'],
+					'displaygroup' => (int) $fetchedConversation['displaygroup'],
+					'profilelink'  => build_profile_link(
+						format_name(
+							htmlspecialchars_uni($fetchedConversation['username']),
+							$fetchedConversation['usergroup'],
+							$fetchedConversation['displaygroup']
+						),
+						$fetchedConversation['user_id']
+					)
+				),
+				'participants' => $this->getParticipantsForConversation($conversationId),
+				'messages'     => $this->getMessagesForConversation($conversationId, $messagesOffset, $messagesPerPage),
+			);
+		}
+
+		return $conversation;
+	}
+
+	/**
+	 * Get a page of messages for the specified conversation.
+	 *
+	 * @param int $conversationId The ID of the conversation.
+	 * @param int $offset         The offset to start at when fetching the comments. Defaults to 0.
+	 * @param int $perPage        The number of comments to fetch. Defaults to 10.
+	 *
+	 * @return array An array of comment details.
+	 */
+	public function getMessagesForConversation($conversationId, $offset = 0, $perPage = 10)
+	{
+		$conversationId = (int) $conversationId;
+		$offset         = (int) $offset;
+		$perPage        = (int) $perPage;
+
+		$messages = array();
+
+		$queryString = <<<SQL
+	SELECT
+	  m.*,
+	  u.avatar,
+	  u.username,
+	  u.usergroup,
+	  u.displaygroup,
+	  u.signature
+	FROM PREFIX_conversation_messages m INNER JOIN PREFIX_users u
+		ON (m.user_id = u.uid)
+	WHERE m.conversation_id = '{$conversationId}'
+	LIMIT {$offset}, {$perPage};
+SQL;
+
+		$queryString = str_replace('PREFIX_', TABLE_PREFIX, $queryString);
+
+		$query = $this->db->write_query($queryString);
+
+		if ($this->db->num_rows($query) > 0) {
+			while ($message = $this->db->fetch_array($query)) {
+				$messageContent = $message['message'];
+
+				if (isset($this->parser)) {
+					$messageContent = $this->parser->parse_message($messageContent, $this->parserOptions);
+				} else {
+					$messageContent = htmlspecialchars_uni($messageContent);
+				}
+
+				$signature = $message['signature'];
+				if (isset($this->parser)) {
+					$signature = $this->parser->parse_message($signature, $this->parserOptions);
+				} else {
+					$signature = htmlspecialchars_uni($signature);
+				}
+
+				$messages[] = array(
+					'id'                => (int) $message['id'],
+					'conversation_id'   => (int) $message['conversation_id'],
+					'message'           => $messageContent,
+					'include_signature' => (bool) $message['include_signature'],
+					'created_at'        => my_date(
+						$this->mybb->settings['dateformat'] . ' ' . $this->mybb->settings['timeformat'],
+						strtotime($message['created_at'])
+					),
+					'updated_at'        => my_date(
+						$this->mybb->settings['dateformat'] . ' ' . $this->mybb->settings['timeformat'],
+						strtotime($message['updated_at'])
+					),
+					'author'            => array(
+						'username'     => htmlspecialchars_uni($message['username']),
+						'avatar'       => htmlspecialchars_uni($message['avatar']),
+						'usergroup'    => (int) $message['usergroup'],
+						'displaygroup' => (int) $message['displaygroup'],
+						'signature'    => $signature,
+						'profilelink'  => build_profile_link(
+							format_name(
+								htmlspecialchars_uni($message['username']),
+								$message['usergroup'],
+								$message['displaygroup']
+							),
+							$message['user_id']
+						),
+					),
+				);
+			}
+		}
+
+		return $messages;
 	}
 
 	/**
@@ -220,10 +397,18 @@ SQL;
 			while ($user = $this->db->fetch_array($query)) {
 				$participants[] = array(
 					'uid'          => (int) $user['user_id'],
-					'username'     => $user['username'],
-					'avatar'       => $user['avatar'],
-					'usergroup'    => $user['usergroup'],
-					'displaygroup' => $user['displaygroup'],
+					'username'     => htmlspecialchars_uni($user['username']),
+					'avatar'       => htmlspecialchars_uni($user['avatar']),
+					'usergroup'    => (int) $user['usergroup'],
+					'displaygroup' => (int) $user['displaygroup'],
+					'profilelink'  => build_profile_link(
+						format_name(
+							htmlspecialchars_uni($user['username']),
+							$user['usergroup'],
+							$user['displaygroup']
+						),
+						$user['user_id']
+					),
 				);
 			}
 		}
