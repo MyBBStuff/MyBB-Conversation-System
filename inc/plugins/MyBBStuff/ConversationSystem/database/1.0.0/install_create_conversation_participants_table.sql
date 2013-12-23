@@ -1,4 +1,4 @@
-CREATE TABLE PREFIX_conversation_participants
+CREATE TABLE IF NOT EXISTS PREFIX_conversation_participants
 (
   id               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   conversation_id  INT(10) UNSIGNED NOT NULL,

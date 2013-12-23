@@ -18,6 +18,9 @@ require dirname(__FILE__).'/global.php';
 
 define('URL_VIEW_CONVERSATION', 'conversations.php?action=view&id=%s');
 
+require_once MYBB_ROOT . '/inc/plugins/MyBBStuff/ConversationSystem/ConversationManager.php';
+$conversationManager = new MyBBStuff_ConversationSystem_ConversationManager($mybb, $db);
+
 if (!isset($lang->mybbconversations)) {
 	$lang->load('mybbconversations');
 }

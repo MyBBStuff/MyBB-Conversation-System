@@ -14,6 +14,8 @@ if (!defined('PLUGINLIBRARY')) {
 	define('PLUGINLIBRARY', MYBB_ROOT.'inc/plugins/pluginlibrary.php');
 }
 
+define('MYBBSTUFF_CONVERSATION_SYSTEM_VERSION', '1.0.0');
+
 /**
  * Information function.
  *
@@ -27,7 +29,7 @@ function conversation_system_info()
 		'website'    => 'http://www.mybsstuff.com',
 		'author'     => 'Euan T',
 		'authorsite' => 'http://www.euantor.com',
-		'version'    => '1.0.0',
+		'version'    => MYBBSTUFF_CONVERSATION_SYSTEM_VERSION,
 		'guid'          => '',
 		'compatibility' => '16*',
 	);
@@ -46,20 +48,58 @@ function conversation_system_install()
 		$lang->load('mybbconversations');
 	}
 
-	conversation_system_run_db_scripts();
+	conversation_system_run_db_scripts('install');
 }
 
 /**
  * Run database scripts for the current version.
  */
-function conversation_system_run_db_scripts()
+function conversation_system_run_db_scripts($action = 'install')
 {
-	$pluginInfo = conversation_system_info();
-	$version    = $pluginInfo['version'];
+	$path = dirname(__FILE__) . '/MyBBStuff/ConversationSystem/database/' . MYBBSTUFF_CONVERSATION_SYSTEM_VERSION;
 
-	$path = __DIR__ . '/MyBBStuff/ConversationSystem/database/' . $version;
-	var_dump($path);
-	die();
+	try {
+		$dir = new DirectoryIterator($path);
+		$dbScripts = array();
+		foreach ($dir as $file) {
+			/** @var DirectoryIterator $file */
+			if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'sql') {
+				if (substr($file->getBasename('.sql'), 0, strlen($action)) == $action) {
+					$sqlScript = str_replace('PREFIX_', TABLE_PREFIX, file_get_contents($file->getPathName()));
+					$dbScripts[$file->getBasename('.sql')] = $sqlScript;
+				}
+			}
+		}
+
+		if (!empty($dbScripts)) {
+			global $db;
+
+			foreach ($dbScripts as $script) {
+				$db->write_query($script);
+			}
+		}
+	} catch (Exception $e) {
+		flash_message('Error running database scripts.');
+		admin_redirect('index.php?module=config-plugins');
+	}
+}
+
+/**
+ * Update the euantor_plugins cache with details fo the conversation system.
+ */
+function conversation_system_update_plugin_cache()
+{
+	global $cache;
+
+	$euantor_plugins = $cache->read('euantor_plugins');
+	if (!is_array($euantor_plugins)) {
+		$euantor_plugins = array();
+	}
+	$euantor_plugins['conversation_system'] = array(
+		'title'   => 'Conversation System',
+		'version' => MYBBSTUFF_CONVERSATION_SYSTEM_VERSION,
+	);
+	$cache->update('euantor_plugins', $euantor_plugins);
 }
 
 /**
@@ -134,16 +174,7 @@ function conversation_system_activate()
 
 	$PL or require_once PLUGINLIBRARY;
 
-	$plugin_info     = mybbconversations_info();
-	$euantor_plugins = $cache->read('euantor_plugins');
-	if (empty($euantor_plugins) OR !is_array($euantor_plugins)) {
-		$euantor_plugins = array();
-	}
-	$euantor_plugins['mybbconversations'] = array(
-		'title'   => 'MyBB Conversation System',
-		'version' => $plugin_info['version'],
-	);
-	$cache->update('euantor_plugins', $euantor_plugins);
+	conversation_system_update_plugin_cache();
 
 	$PL->settings(
 		'mybbconversations',
@@ -164,18 +195,26 @@ function conversation_system_activate()
 		)
 	);
 
-	$dir = new DirectoryIterator(dirname(__FILE__) . '/ConversationSystem/templates');
-	$templates = array();
-	foreach ($dir as $file) {
-		/** @var SPLFileInfo $file */
-		if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'html') {
-			$templates[$file->getBasename('.html')] = file_get_contents($file->getPathName());
+	try {
+		$dir = new DirectoryIterator(dirname(__FILE__) . '/MyBBStuff/ConversationSystem/templates');
+		$templates = array();
+		foreach ($dir as $file) {
+			/** @var DirectoryIterator $file */
+			if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'html') {
+				$templates[$file->getBasename('.html')] = file_get_contents($file->getPathName());
+			}
 		}
+
+		if (!empty($templates)) {
+			$PL->templates(
+				'mybbconversations',
+				$lang->mybbconversations_title,
+				$templates
+			);
+		}
+	} catch (Exception $e) {
+		flash_message('Error inserting templates');
+		admin_redirect('index.php?module=config-plugins');
 	}
 
-	$PL->templates(
-		'mybbconversations',
-		$lang->mybbconversations_title,
-		$templates
-	);
 }
