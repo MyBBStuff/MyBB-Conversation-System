@@ -24,13 +24,76 @@ class MyBBStuff_ConversationSystem_ConversationManager
 		$this->db   = $db;
 	}
 
-	public function getConversationsForUser($userId = 0)
+	/**
+	 * Get the number of conversations the current user is involved in.
+	 *
+	 * @return int The number of conversations the user has either created or is a participant within.
+	 */
+	public function getNumInvolvedConversations()
 	{
-		$userId = (int) $userId;
+		$queryString = <<<SQL
+	SELECT COUNT(*) AS count FROM PREFIX_conversations c LEFT JOIN PREFIX_conversation_participants cp ON (c.id = cp.conversation_id) WHERE cp.user_id = '{$this->mybb->user['uid']}' OR c.user_id = '{$this->mybb->user['uid']}';
+SQL;
+		$queryString = str_replace('PREFIX_', TABLE_PREFIX, $queryString);
 
-		if (empty($userId)) {
-			$userId = (int) $this->mybb->user['uid'];
+		$query = $this->db->write_query($queryString);
+
+		$numConversations = (int) $this->db->fetch_field($query, 'count');
+
+		return $numConversations;
+	}
+
+	/**
+	 * Get a list of conversations.
+	 *
+	 * @param int $start   The start index to use when fetching conversations. Defaults to 0.
+	 * @param int $perPage The number of conversations to fetch. Defaults to 10.
+	 *
+	 * @return array The most recent conversations, sorted by the creation date of the last message.
+	 */
+	public function getConversations($start = 0, $perPage = 10)
+	{
+		$start   = (int) $start;
+		$perPage = (int) $perPage;
+
+		$conversations = array();
+
+		$queryString = <<<SQL
+	SELECT
+	  c.id,
+	  c.subject,
+	  c.created_at                   AS conversation_created_at,
+	  creating_user.username         AS creator_username,
+	  creating_user.usergroup        AS creator_usergroup,
+	  creating_user.displaygroup     AS creator_displaygroup,
+	  creating_user.avatar           AS creator_avatar,
+	  last_message_user.uid          AS last_message_uid,
+	  last_message.updated_at        AS last_message_date,
+	  last_message_user.username     AS last_message_username,
+	  last_message_user.avatar       AS last_message_avatar,
+	  last_message_user.usergroup    AS last_message_usergroup,
+	  last_message_user.displaygroup AS last_message_displaygroup
+	FROM PREFIX_conversations c INNER JOIN PREFIX_users creating_user
+		ON (c.user_id = creating_user.uid)
+	  INNER JOIN PREFIX_conversation_messages last_message
+		ON (c.last_message_id = last_message.id)
+	  INNER JOIN PREFIX_users last_message_user
+		ON (last_message.user_id = last_message_user.uid)
+	  LEFT JOIN PREFIX_conversation_participants cp
+		ON (c.id = cp.conversation_id)
+	WHERE cp.user_id = '{$this->mybb->user['uid']}' OR c.user_id = '{$this->mybb->user['uid']}'
+	ORDER BY last_message_date DESC, conversation_created_at DESC LIMIT {$start}, {$perPage};
+SQL;
+
+		$queryString = str_replace('PREFIX_', TABLE_PREFIX, $queryString);
+
+		$query = $this->db->write_query($queryString);
+
+		while ($conversation = $this->db->fetch_array($query)) {
+			$conversations[] = $conversation;
 		}
+
+		return $conversations;
 	}
 
 	/**
