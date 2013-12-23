@@ -7,3 +7,7 @@ Thumbs.db
 
 # Folder config file
 Desktop.ini
+
+mysql-connector-java-5.1.26-bin.jar
+mysql-connector-license.txt
+.idea

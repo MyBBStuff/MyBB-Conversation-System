@@ -1,0 +1,84 @@
+<html>
+<head>
+    <title>Start a conversation - {$mybb->settings['bbname']}</title>
+    {$headerinclude}
+    <script type="text/javascript" src="jscripts/usercp.js"></script>
+</head>
+<body>
+{$header}
+<form action="conversations.php?action=create_conversation" method="post">
+    <table border=0 cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" width="100%">
+        <tr>
+            <td width="20%" valign="top">
+                <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}"
+                       class="tborder">
+                    <thead>
+                    <tr>
+                        <td class="thead" colspan="2">
+                            <strong>{$lang->mybbconversations_participants}</strong>
+                        </td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {$conversationParticipants}
+                    <tr>
+                        <td class="trow1">
+                            <strong>
+                                <label for="participants">
+                                    {$lang->mybbconversations_input_add_participant}
+                                </label>
+                            </strong>
+                        </td>
+                        <td class="trow1">
+                            <textarea name="participants" id="to" rows="2" cols="38" tabindex="1">{$to}</textarea>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+            <td valign="top">
+                {$inline_errors}
+                <input type="hidden" name="my_post_key" value="{$mybb->post_code}"/>
+                <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}"
+                       class="tborder">
+                    <thead>
+                    <tr>
+                        <th class="thead" colspan="2">
+                            <strong>{$lang->mybbconversations_nav_create}</strong>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="trow1" width="20%">
+                            <label for="input_subject">
+                                <strong>{$lang->mybbconversations_input_subject}</strong>
+                            </label>
+                        </td>
+                        <td class="trow1">
+                            <input type="text" id="input_subject" name="subject" value="{$subject}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="trow2" width="20%">
+                            <label for="message">
+                                <strong>{$lang->mybbconversations_input_message}</strong>
+                            </label>
+                        </td>
+                        <td class="trow1">
+                            <textarea name="message" id="message" rows="20" cols="70" tabindex="2">{$message}</textarea>
+                            {$codebuttons}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div align="center">
+                    <input type="submit" value="{$lang->mybbconversations_start_conversation}"/>
+                </div>
+            </td>
+        </tr>
+    </table>
+</form>
+{$footer}
+</body>
+</html>

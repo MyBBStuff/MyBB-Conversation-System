@@ -23,7 +23,7 @@ $l['mybbconversations_conversation_last_message'] = 'Last Message Details';
 
 $l['mybbconversations_no_conversations'] = 'No conversations to display.';
 
-$l['mybbconversations_input_subject']           = 'Subject:';
+$l['mybbconversations_input_subject']         = 'Subject:';
 $l['mybbconversations_input_message']         = 'Message:';
 $l['mybbconversations_input_add_participant'] = 'Add:';
 

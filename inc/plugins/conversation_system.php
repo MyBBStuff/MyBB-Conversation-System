@@ -4,10 +4,8 @@
  *
  * A replacement for MyBB's core Private Message functionality based on IPB's Conversation feature.
  *
- * @author   Euan T. <euan@euantor.com>
- * @license  http://opensource.org/licenses/mit-license.php The MIT License
- * @version  1.0
- * @link     http://euantor.com/mybb-conversation-system
+ * @author   Euan T <euan@euantor.com>
+ * @version  1.0.0
  */
 
 defined('IN_MYBB') or die('Diect access to this file is not allowed. Please ensure IN_MYBB is defined.');
@@ -21,15 +19,15 @@ if (!defined('PLUGINLIBRARY')) {
  *
  * @return array The plugin details.
  */
-function mybbconversations_info()
+function conversation_system_info()
 {
 	return array(
 		'name'          => 'Conversation System',
 		'description'   => 'A drop in replacement for Private Messages. Let your users have conversations, not just exchange messages with each other.',
-		'website'       => 'http://euantor.com/mybb-conversation-system',
-		'author'        => 'Euan T.',
-		'authorsite'    => 'http://euantor.com',
-		'version'       => '0.1',
+		'website'    => 'http://www.mybsstuff.com',
+		'author'     => 'Euan T',
+		'authorsite' => 'http://www.euantor.com',
+		'version'    => '1.0.0',
 		'guid'          => '',
 		'compatibility' => '16*',
 	);
@@ -40,7 +38,7 @@ function mybbconversations_info()
  *
  * @return null
  */
-function mybbconversations_install()
+function conversation_system_install()
 {
 	global $db, $cache, $lang;
 
@@ -48,52 +46,20 @@ function mybbconversations_install()
 		$lang->load('mybbconversations');
 	}
 
-	if (!file_exists(PLUGINLIBRARY)) {
-		flash_message($lang->mybbconversations_pluginlibrary_missing, 'error');
-		admin_redirect('index.php?module=config-plugins');
-	}
+	conversation_system_run_db_scripts();
+}
 
-	$PL or include_once PLUGINLIBRARY;
+/**
+ * Run database scripts for the current version.
+ */
+function conversation_system_run_db_scripts()
+{
+	$pluginInfo = conversation_system_info();
+	$version    = $pluginInfo['version'];
 
-	$collation = $db->build_create_table_collation();
-
-	if (!$db->table_exists('conversations')) {
-		$db->write_query(
-			"CREATE TABLE ".TABLE_PREFIX."conversations(
-			id INT(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-			user_id INT(10) unsigned NOT NULL,
-			subject VARCHAR(120) NOT NULL,
-			created_at DATETIME NOT NULL
-			) ENGINE=MyISAM{$collation};"
-		);
-	}
-
-	if (!$db->table_exists('conversation_messages')) {
-		$db->write_query(
-			"CREATE TABLE ".TABLE_PREFIX."conversation_messages(
-			id INT(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-			user_id INT(10) unsigned NOT NULL,
-			conversation_id INT(10) unsigned NOT NULL,
-			message TEXT NOT NULL,
-			includesig INT(1) NOT NULL DEFAULT '1',
-			created_at DATETIME NOT NULL,
-			updated_at DATETIME NOT NULL
-			) ENGINE=MyISAM{$collation};"
-		);
-	}
-
-	if (!$db->table_exists('conversation_participants')) {
-		$db->write_query(
-			"CREATE TABLE ".TABLE_PREFIX."conversation_participants(
-			id INT(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-			conversation_id INT(10) unsigned NOT NULL,
-			user_id INT(10) unsigned NOT NULL,
-			created_at DATETIME NOT NULL
-			) ENGINE=MyISAM{$collation};"
-		);
-	}
-
-	unset($collation);
+	$path = __DIR__ . '/MyBBStuff/ConversationSystem/database/' . $version;
+	var_dump($path);
+	die();
 }
 
 /**
@@ -101,7 +67,7 @@ function mybbconversations_install()
  *
  * @return boolean Whether the system is installed.
  */
-function mybbconversations_is_installed()
+function conversation_system_is_installed()
 {
 	global $db;
 
@@ -109,11 +75,11 @@ function mybbconversations_is_installed()
 }
 
 /**
- * Uninstallation function.
+ * Uninstall function.
  *
  * @return null
  */
-function mybbconversations_uninstall()
+function conversation_system_uninstall()
 {
 	global $db, $cache, $lang;
 
@@ -153,7 +119,7 @@ function mybbconversations_uninstall()
  * Activation function.
  * @return null
  */
-function mybbconversations_activate()
+function conversation_system_activate()
 {
 	global $lang, $PL, $cache;
 
@@ -198,9 +164,10 @@ function mybbconversations_activate()
 		)
 	);
 
-	$dir       = new DirectoryIterator(dirname(__FILE__).'/ConversationSystem/templates'); // Change this to the path for your plugin
+	$dir = new DirectoryIterator(dirname(__FILE__) . '/ConversationSystem/templates');
 	$templates = array();
 	foreach ($dir as $file) {
+		/** @var SPLFileInfo $file */
 		if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'html') {
 			$templates[$file->getBasename('.html')] = file_get_contents($file->getPathName());
 		}
