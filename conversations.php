@@ -12,7 +12,7 @@
 define('IN_MYBB', 1);
 define('THIS_SCRIPT', 'conversations.php');
 
-$templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row,mybbconversations_create_button,multipage_breadcrumb,multipage,multipage_end,multipage_nextpage,multipage_page,multipage_page_current,multipage_page_link_current,multipage_prevpage,multipage_start';
+$templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row,mybbconversations_create_button,multipage_breadcrumb,multipage,multipage_end,multipage_nextpage,multipage_page,multipage_page_current,multipage_page_link_current,multipage_prevpage,multipage_start,mybbconversations_single_participant,mybbconversations_single_message_signature, mybbconversations_single_message,mybbconversations_view';
 
 require dirname(__FILE__).'/global.php';
 
