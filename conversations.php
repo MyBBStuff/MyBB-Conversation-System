@@ -35,7 +35,7 @@ if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->reques
 	verify_post_check($mybb->input['my_post_key']);
 	$errors = array();
 
-	$mybb->input['subejct'] = trim($mybb->input['subject']);
+	$mybb->input['subject'] = trim($mybb->input['subject']);
 	$mybb->input['message'] = trim($mybb->input['message']);
 
 	if (!isset($mybb->input['subject']) OR empty($mybb->input['subject'])) {
@@ -51,26 +51,7 @@ if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->reques
 		$mybb->input['action'] = 'create_conversation';
 	}
 
-	$now = new DateTime();
-
-	$insertArray = array(
-		'subject' => $db->escape_string($mybb->input['subject']),
-		'user_id' => (int) $mybb->user['uid'],
-		'created_at' => $now->format('Y-m-d H:i:s'),
-	);
-
-	$conversationId = (int) $db->insert_query('conversations', $insertArray);
-
-	$insertArray = array(
-		'user_id' => (int) $mybb->user['uid'],
-		'conversation_id' => $conversationId,
-		'message' => $db->escape_string($mybb->input['message']),
-		'includesig' => 1,
-		'created_at' => $now->format('Y-m-d H:i:s'),
-		'updated_at' => $now->format('Y-m-d H:i:s'),
-	);
-
-	$firstMessageId = $db->insert_query('conversation_messages', $insertArray);
+	$conversation = $conversationManager->createConversation(array(), $mybb->input['subject'], $mybb->input['message']);
 
 	$participants = array();
 	$participantUids = array();

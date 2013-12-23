@@ -11,7 +11,7 @@
 defined('IN_MYBB') or die('Diect access to this file is not allowed. Please ensure IN_MYBB is defined.');
 
 if (!defined('PLUGINLIBRARY')) {
-	define('PLUGINLIBRARY', MYBB_ROOT.'inc/plugins/pluginlibrary.php');
+	define('PLUGINLIBRARY', MYBB_ROOT . 'inc/plugins/pluginlibrary.php');
 }
 
 define('MYBBSTUFF_CONVERSATION_SYSTEM_VERSION', '1.0.0');
@@ -26,10 +26,10 @@ function conversation_system_info()
 	return array(
 		'name'          => 'Conversation System',
 		'description'   => 'A drop in replacement for Private Messages. Let your users have conversations, not just exchange messages with each other.',
-		'website'    => 'http://www.mybsstuff.com',
-		'author'     => 'Euan T',
-		'authorsite' => 'http://www.euantor.com',
-		'version'    => MYBBSTUFF_CONVERSATION_SYSTEM_VERSION,
+		'website'       => 'http://www.mybsstuff.com',
+		'author'        => 'Euan T',
+		'authorsite'    => 'http://www.euantor.com',
+		'version'       => MYBBSTUFF_CONVERSATION_SYSTEM_VERSION,
 		'guid'          => '',
 		'compatibility' => '16*',
 	);
@@ -59,13 +59,17 @@ function conversation_system_run_db_scripts($action = 'install')
 	$path = dirname(__FILE__) . '/MyBBStuff/ConversationSystem/database/' . MYBBSTUFF_CONVERSATION_SYSTEM_VERSION;
 
 	try {
-		$dir = new DirectoryIterator($path);
+		$dir       = new DirectoryIterator($path);
 		$dbScripts = array();
 		foreach ($dir as $file) {
 			/** @var DirectoryIterator $file */
 			if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'sql') {
 				if (substr($file->getBasename('.sql'), 0, strlen($action)) == $action) {
-					$sqlScript = str_replace('PREFIX_', TABLE_PREFIX, file_get_contents($file->getPathName()));
+					$sqlScript                             = str_replace(
+						'PREFIX_',
+						TABLE_PREFIX,
+						file_get_contents($file->getPathName())
+					);
 					$dbScripts[$file->getBasename('.sql')] = $sqlScript;
 				}
 			}
@@ -111,7 +115,9 @@ function conversation_system_is_installed()
 {
 	global $db;
 
-	return $db->table_exists('conversations') AND $db->table_exists('conversation_messages') AND $db->table_exists('conversation_participants');
+	return $db->table_exists('conversations') AND $db->table_exists('conversation_messages') AND $db->table_exists(
+		'conversation_participants'
+	);
 }
 
 /**
@@ -157,6 +163,7 @@ function conversation_system_uninstall()
 
 /**
  * Activation function.
+ *
  * @return null
  */
 function conversation_system_activate()
@@ -196,7 +203,7 @@ function conversation_system_activate()
 	);
 
 	try {
-		$dir = new DirectoryIterator(dirname(__FILE__) . '/MyBBStuff/ConversationSystem/templates');
+		$dir       = new DirectoryIterator(dirname(__FILE__) . '/MyBBStuff/ConversationSystem/templates');
 		$templates = array();
 		foreach ($dir as $file) {
 			/** @var DirectoryIterator $file */
