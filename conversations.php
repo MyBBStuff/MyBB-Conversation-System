@@ -19,6 +19,7 @@ require dirname(__FILE__).'/global.php';
 define('URL_VIEW_CONVERSATION', 'conversations.php?action=view&id=%s');
 
 require_once MYBB_ROOT . '/inc/plugins/MyBBStuff/ConversationSystem/ConversationManager.php';
+require_once MYBB_ROOT . '/inc/plugins/MyBBStuff/ConversationSystem/NoPermissionException.php';
 $conversationManager = new MyBBStuff_ConversationSystem_ConversationManager($mybb, $db);
 
 if (!isset($lang->mybbconversations)) {
@@ -100,15 +101,17 @@ if ($mybb->input['action'] == 'view') {
 	);
 
 	$conversationManager->setParser($parser, $parserOptions);
-	$conversation  = $conversationManager->getConversation($id);
+	$conversation = array();
 
-	if (empty($conversation)) {
-		error('Invalid conversation ID.');
+	try {
+		$conversation = $conversationManager->getConversation($id);
+	} catch (MyBBStuff_ConversationSystem_NoPermissionException $e) {
+		error_no_permission();
 	}
 
-//	if (!array_key_exists((int) $mybb->user['uid'], $participants)) {
-//		error_no_permission();
-//	}
+	if (empty($conversation)) {
+		error('Invalid conversation.');
+	}
 
 	$participantList = '';
 	foreach ($conversation['participants'] as $participant) {
@@ -167,7 +170,7 @@ if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 	}
 	$multipage = multipage($numInvolvedConversations, $perPage, $page, 'conversations.php');
 
-	$conversations                                      = $conversationManager->getConversations($start, $perPage);
+	$conversations = $conversationManager->getConversations($start, $perPage);
 
 	if (!empty($conversations)) {
 		$conversationsList = '';

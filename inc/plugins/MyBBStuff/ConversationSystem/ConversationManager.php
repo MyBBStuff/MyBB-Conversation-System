@@ -1,6 +1,6 @@
 <?php
 /**
- * Class MyBBStuff_ConversationSystem_ConversationManager
+ * A class to handle the CRUD operations performed on conversations, messages and participants.
  *
  * @author  Euan T <euan@euantor.com>
  * @version 1.0.0
@@ -131,6 +131,8 @@ SQL;
 	 * @param int $messagesPerPage The number of messages to show per page. Defaults to 10.
 	 *
 	 * @return array The conversation's details.
+	 *
+	 * @throws MyBBStuff_ConversationSystem_NoPermissionException
 	 */
 	public function getConversation($conversationId, $messagesOffset = 0, $messagesPerPage = 10)
 	{
@@ -165,6 +167,7 @@ SQL;
 					$fetchedConversation['created_at']
 				),
 				'creator'      => array(
+					'id' => (int) $fetchedConversation['user_id'],
 					'username'     => htmlspecialchars_uni($fetchedConversation['username']),
 					'avatar'       => htmlspecialchars_uni($fetchedConversation['avatar']),
 					'usergroup'    => (int) $fetchedConversation['usergroup'],
@@ -181,6 +184,10 @@ SQL;
 				'participants' => $this->getParticipantsForConversation($conversationId),
 				'messages'     => $this->getMessagesForConversation($conversationId, $messagesOffset, $messagesPerPage),
 			);
+
+			if (!$this->checkCanViewConversation($conversation)) {
+				throw new MyBBStuff_ConversationSystem_NoPermissionException('You do not have permission to view this conversation');
+			}
 		}
 
 		return $conversation;
@@ -396,7 +403,7 @@ SQL;
 		if ($this->db->num_rows($query) > 0) {
 			while ($user = $this->db->fetch_array($query)) {
 				$participants[] = array(
-					'uid'          => (int) $user['user_id'],
+					'id' => (int) $user['user_id'],
 					'username'     => htmlspecialchars_uni($user['username']),
 					'avatar'       => htmlspecialchars_uni($user['avatar']),
 					'usergroup'    => (int) $user['usergroup'],
@@ -509,6 +516,31 @@ SQL;
 		}
 
 		return $userIds;
+	}
+
+	/**
+	 * Check if the current user can view the specified conversation.
+	 *
+	 * @param array $conversation The conversation array as fetched by getConversation().
+	 *
+	 * @return bool True if the user can view the conversation, false if not.
+	 */
+	private function checkCanViewConversation(array $conversation)
+	{
+		$canView = false;
+
+		if ($conversation['creator']['id'] == $this->mybb->user['uid']) {
+			$canView = true;
+		} else { // Not the creator of the conversation
+			foreach ($conversation['participants'] as $participant) {
+				if ($participant['id'] == $this->mybb->user['uid']) {
+				}
+				$canView = true;
+				break;
+			}
+		}
+
+		return $canView;
 	}
 
 }
