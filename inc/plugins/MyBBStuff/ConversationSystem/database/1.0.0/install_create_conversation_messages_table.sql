@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS PREFIX_conversation_messages (
+CREATE TABLE IF NOT EXISTS PREFIX_conversation_messages
+(
   id                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id           INT(10) UNSIGNED NOT NULL,
   conversation_id   INT(10) UNSIGNED NOT NULL,

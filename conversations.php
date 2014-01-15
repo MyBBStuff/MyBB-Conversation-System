@@ -32,7 +32,10 @@ if ($mybb->user['uid'] == 0 OR !$mybb->settings['mybbconversations_enabled']) {
 	error_no_permission();
 }
 
-if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->request_method) == 'post') {
+if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversation' AND strtolower(
+		$mybb->request_method
+	) == 'post'
+) {
 	verify_post_check($mybb->input['my_post_key']);
 	$errors = array();
 
@@ -73,7 +76,7 @@ if ($mybb->input['action'] == 'create_conversation' AND strtolower($mybb->reques
 	);
 }
 
-if ($mybb->input['action'] == 'create_conversation') {
+if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversation') {
 	add_breadcrumb($lang->mybbconversations_nav_create, 'conversations.php?action=create_conversation');
 
 	$codebuttons = build_mycode_inserter();
@@ -81,7 +84,7 @@ if ($mybb->input['action'] == 'create_conversation') {
 	output_page($page);
 }
 
-if ($mybb->input['action'] == 'view') {
+if (isset($mybb->input['action']) AND $mybb->input['action'] == 'view') {
 	$id = (int) $mybb->input['id'];
 
 	if (empty($id)) {
@@ -120,21 +123,47 @@ if ($mybb->input['action'] == 'view') {
 	}
 
 	$messageList = '';
-	foreach ($conversation['messages'] as $message) {
+	foreach ($conversation['messages'] as $singleMessage) {
 		$altbg = alt_trow();
 		$signature = '';
 
-		if ($message['include_signature']) {
+		if ($singleMessage['include_signature']) {
 			eval("\$signature = \"" . $templates->get('mybbconversations_single_message_signature') . "\";");
 		}
 
 		eval("\$messageList .= \"".$templates->get('mybbconversations_single_message')."\";");
 	}
 
+	$codebuttons = build_mycode_inserter();
+	eval("\$newReply = \"" . $templates->get('mybbconversations_new_reply') . "\";");
+
 	add_breadcrumb($conversation['subject'], sprintf(URL_VIEW_CONVERSATION, $conversation['id']));
 
 	eval("\$page = \"".$templates->get('mybbconversations_view')."\";");
 	output_page($page);
+}
+
+if (isset($mybb->input['action']) AND $mybb->input['action'] == 'new_reply' AND strtolower(
+		$mybb->request_method
+	) == 'post'
+) {
+	verify_post_check($mybb->input['my_post_key']);
+
+	// TODO: Check that conversation exists and user has access
+
+	$conversationId = (int) $mybb->input['conversation_id'];
+	$includeSig     = isset($mybb->input['include_signature']);
+	$message        = $mybb->input['message'];
+
+	if ($conversationManager->addMessageToConversation($conversationId, $message, $includeSig)) {
+		redirect(
+			"conversations.php?action=view&amp;id={$conversationId}",
+			'Message added to conversation. Taking you back to it now.',
+			'Message added'
+		);
+	} else {
+		error('Failed to add message. Taking you back to the conversation now.', 'Message sending failed');
+	}
 }
 
 if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {

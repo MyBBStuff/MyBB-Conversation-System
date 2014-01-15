@@ -1,22 +1,22 @@
 <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder message"
-       id="message_{$message['id']}">
+       id="message_{$singleMessage['id']}">
     <thead>
     <tr>
         <th class="trow" colspan="2">
-            <strong>{$message['created_at']}</strong>
+            <strong>{$singleMessage['created_at']}</strong>
         </th>
     </tr>
     </thead>
     <tbody>
     <tr>
-        <td class="{$altbg}" rowspan="2">
+        <td class="{$altbg}" rowspan="2" width="200" align="center">
             <div class="avatar">
-                <img src="{$message['author']['avatar']}"/>
+                <img src="{$singleMessage['author']['avatar']}"/>
             </div>
-            {$message['author']['profilelink']}
+            {$singleMessage['author']['profilelink']}
         </td>
         <td class="{$altbg}">
-            {$message['message']}
+            {$singleMessage['message']}
         </td>
         {$signature}
     </tbody>

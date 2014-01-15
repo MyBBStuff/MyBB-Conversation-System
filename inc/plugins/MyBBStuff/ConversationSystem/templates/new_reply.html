@@ -1,0 +1,29 @@
+<form action="{$mybb->settings['bburl']}/conversations.php?action=new_reply" method="post">
+	<input name="my_post_key" value="{$mybb->post_code}" type="hidden"/>
+	<input name="conversation_id" type="hidden" value="{$conversation['id']}"/>
+	<table border=0 cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" width="100%"
+	       class="tborder">
+		<thead>
+			<tr>
+				<td class="thead" colspan="2">{$lang->new_reply}</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td class="trow1" width="200">
+					<label for="include_signature"><input type="checkbox" name="include_signature"
+					                                      id="include_signature" checked="checked"/> {$lang->include_signature}</label>
+				</td>
+				<td class="trow2">
+					<textarea name="message" id="message" rows="20" cols="70" tabindex="2"></textarea>
+					{$codebuttons}
+				</td>
+			</tr>
+			<tr>
+				<td class="trow2" colspan="2">
+					<input type="submit" value="{$lang->new_reply}"/>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>

@@ -33,3 +33,7 @@ $l['mybbconversations_start_conversation'] = 'Start Conversation';
 
 $l['mybbconversations_error_title_required']   = 'A subject is required to start a conversation.';
 $l['mybbconversations_error_message_required'] = 'A message is required to start a conversation.';
+
+
+$l['new_reply']         = 'New Message';
+$l['include_signature'] = 'Include Signature?';
