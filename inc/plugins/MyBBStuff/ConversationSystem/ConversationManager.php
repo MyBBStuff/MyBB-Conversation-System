@@ -312,7 +312,6 @@ SQL;
 		$firstMessage            = $this->addMessageToConversation($conversationId, $firstMessage);
 		$insertArray['messages'] = array($firstMessage);
 
-		$this->updateLastMessageId($conversationId, $firstMessage['id']);
 		$insertArray['last_message_id'] = $firstMessage['id'];
 
 		return $insertArray;
@@ -379,6 +378,8 @@ SQL;
 		$conversationMessageId = $this->db->insert_query('conversation_messages', $insertArray);
 		$insertArray['id']     = $conversationMessageId;
 
+		$this->updateLastMessageId($conversationId, $conversationMessageId);
+
 		return $insertArray;
 	}
 
@@ -421,6 +422,32 @@ SQL;
 		}
 
 		return $participants;
+	}
+
+	/**
+	 * Adds a view for the current user for each defined conversation message ID.
+	 *
+	 * @param array $messageIds An array of message IDs to add views for.
+	 *
+	 * @return bool Whether the query was a success.
+	 */
+	public function addConversationMessageViews(array $messageIds)
+	{
+		$insertArray = array();
+
+		$now = new DateTime();
+
+		// TODO: INSERT IGNORE query so that only one row for each is added - otherwise we will clash with the UNIQUE index
+
+		foreach ($messageIds as $messageId) {
+			$insertArray[] = array(
+				'conversation_message_id' => (int) $messageId,
+				'user_id'                 => (int) $this->mybb->user['uid'],
+				'created_at'              => $this->db->escape_string($now->format('Y-m-d H:i:s')),
+			);
+		}
+
+		return (bool) $this->db->insert_query_multiple('conversation_message_views', $insertArray);
 	}
 
 	/**
@@ -542,5 +569,4 @@ SQL;
 
 		return $canView;
 	}
-
 }

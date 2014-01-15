@@ -14,7 +14,7 @@ define('THIS_SCRIPT', 'conversations.php');
 
 $templatelist = 'mybbconversations_list,mybbconversations_row_empty,mybbconversations_row,mybbconversations_create_button,multipage_breadcrumb,multipage,multipage_end,multipage_nextpage,multipage_page,multipage_page_current,multipage_page_link_current,multipage_prevpage,multipage_start,mybbconversations_single_participant,mybbconversations_single_message_signature, mybbconversations_single_message,mybbconversations_view';
 
-require dirname(__FILE__).'/global.php';
+require dirname(__FILE__) . '/global.php';
 
 define('URL_VIEW_CONVERSATION', 'conversations.php?action=view&id=%s');
 
@@ -55,7 +55,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversa
 		$mybb->input['action'] = 'create_conversation';
 	}
 
-	if (strstr($mybb->input['participants'], ',')  === false) {
+	if (strstr($mybb->input['participants'], ',') === false) {
 		$mybb->input['participants'] = array(
 			$mybb->input['participants'],
 		);
@@ -80,7 +80,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'create_conversa
 	add_breadcrumb($lang->mybbconversations_nav_create, 'conversations.php?action=create_conversation');
 
 	$codebuttons = build_mycode_inserter();
-	eval("\$page = \"".$templates->get('mybbconversations_create_conversation')."\";");
+	eval("\$page = \"" . $templates->get('mybbconversations_create_conversation') . "\";");
 	output_page($page);
 }
 
@@ -91,12 +91,12 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'view') {
 		error('Conversation not found. Please try again.');
 	}
 
-	require_once  MYBB_ROOT.'inc/class_parser.php';
+	require_once MYBB_ROOT . 'inc/class_parser.php';
 	$parser = new postParser;
 
 	$parserOptions = array(
-		'allow_html' => false,
-		'allow_mycode' => true,
+		'allow_html'    => false,
+		'allow_mycode'  => true,
 		'allow_smilies' => true,
 		'allow_imgcode' => true,
 		'allow_videocode' => true,
@@ -119,7 +119,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'view') {
 	$participantList = '';
 	foreach ($conversation['participants'] as $participant) {
 		$altbg = alt_trow();
-		eval("\$participantList .= \"".$templates->get('mybbconversations_single_participant')."\";");
+		eval("\$participantList .= \"" . $templates->get('mybbconversations_single_participant') . "\";");
 	}
 
 	$messageList = '';
@@ -131,7 +131,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'view') {
 			eval("\$signature = \"" . $templates->get('mybbconversations_single_message_signature') . "\";");
 		}
 
-		eval("\$messageList .= \"".$templates->get('mybbconversations_single_message')."\";");
+		eval("\$messageList .= \"" . $templates->get('mybbconversations_single_message') . "\";");
 	}
 
 	$codebuttons = build_mycode_inserter();
@@ -139,7 +139,7 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'view') {
 
 	add_breadcrumb($conversation['subject'], sprintf(URL_VIEW_CONVERSATION, $conversation['id']));
 
-	eval("\$page = \"".$templates->get('mybbconversations_view')."\";");
+	eval("\$page = \"" . $templates->get('mybbconversations_view') . "\";");
 	output_page($page);
 }
 
@@ -169,9 +169,9 @@ if (isset($mybb->input['action']) AND $mybb->input['action'] == 'new_reply' AND 
 if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 	$conversations = '';
 	$altbg         = '';
-	$uid           = (int)$mybb->user['uid'];
+	$uid = (int) $mybb->user['uid'];
 
-	eval("\$createButton = \"".$templates->get('mybbconversations_create_button')."\";");
+	eval("\$createButton = \"" . $templates->get('mybbconversations_create_button') . "\";");
 
 	$numInvolvedConversations = $conversationManager->getNumInvolvedConversations();
 
@@ -204,7 +204,7 @@ if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 	if (!empty($conversations)) {
 		$conversationsList = '';
 		foreach ($conversations as $conversation) {
-			$altbg = alt_trow();
+			$altbg                   = alt_trow();
 			$conversation['link']                       = htmlspecialchars_uni(
 				sprintf(URL_VIEW_CONVERSATION, (int) $conversation['id'])
 			);
@@ -225,13 +225,13 @@ if (!isset($mybb->input['action']) OR $mybb->input['action'] == 'list') {
 				),
 				$conversation['last_message_uid']
 			);
-			eval("\$conversationsList .= \"".$templates->get('mybbconversations_row')."\";");
+			eval("\$conversationsList .= \"" . $templates->get('mybbconversations_row') . "\";");
 		}
 	} else {
 		$altbg = 'trow1';
-		eval("\$conversationsList = \"".$templates->get('mybbconversations_row_empty')."\";");
+		eval("\$conversationsList = \"" . $templates->get('mybbconversations_row_empty') . "\";");
 	}
 
-	eval("\$page = \"".$templates->get('mybbconversations_list')."\";");
+	eval("\$page = \"" . $templates->get('mybbconversations_list') . "\";");
 	output_page($page);
 }
